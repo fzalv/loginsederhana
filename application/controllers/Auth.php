@@ -11,11 +11,52 @@ class Auth extends CI_Controller
 
     public function index()
     {
-        $data['title'] = "Masuk!";
-        $this->load->view('templates/auth_header', $data);
-        $this->load->view('auth/login');
-        $this->load->view('templates/auth_footer');
+        $this->form_validation->set_rules('email', 'Email', 'trim|required|valid_email');
+        $this->form_validation->set_rules('pass', 'Password', 'trim|required');
+
+        if ($this->form_validation->run() == false) {
+            $data['title'] = "Masuk!";
+            $this->load->view('templates/auth_header', $data);
+            $this->load->view('auth/login');
+            $this->load->view('templates/auth_footer');
+        } else {
+            $this->_login();
+        }
     }
+
+    private function _login()
+    {
+        $email = $this->input->post('email');
+        $password = $this->input->post('pass');
+
+        $user = $this->db->get_where('user', ['email' => $email])->row_array();
+
+        // jika usernya ada
+        if ($user) {
+            //jika usernya aktif
+            if ($user['is_active'] == 1) {
+                // cek password
+                if (password_verify($password, $user['password'])) {
+                    $data = [
+                        'email' => $user['email'],
+                        'role_id' => $user['role_id']
+                    ];
+                    $this->session->set_userdata($data);
+                    redirect('user');
+                } else {
+                    $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Password salah!</div>');
+                    redirect('auth');
+                }
+            } else {
+                $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Email belum diaktivasi!</div>');
+                redirect('auth');
+            }
+        } else {
+            $this->session->set_flashdata('message', '<div class="alert alert-danger" role="alert">Email tidak terdaftar!</div>');
+            redirect('auth');
+        }
+    }
+
     public function register()
     {
         $this->form_validation->set_rules('name', 'Name', 'required|trim');
@@ -35,10 +76,10 @@ class Auth extends CI_Controller
             $this->load->view('templates/auth_footer');
         } else {
             $data = [
-                'name' => $this->input->post('name'),
-                'email' => $this->input->post('email'),
+                'name' => htmlspecialchars($this->input->post('name', true)),
+                'email' => htmlspecialchars($this->input->post('email', true)),
                 'image' => 'default.jpg',
-                'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT),
+                'password' => password_hash($this->input->post('pass1'), PASSWORD_DEFAULT),
                 'role_id' => 2,
                 'is_active' => 1,
                 'date_created' => time()
