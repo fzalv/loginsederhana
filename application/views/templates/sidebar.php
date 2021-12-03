@@ -35,33 +35,41 @@
         <?php
         $menuId = $m['id'];
         $querySubMenu = "SELECT *
-                    FROM user_sub_menu
-                    WHERE menu_id = $menuId
-                    AND is_active = 1";
+                        FROM user_sub_menu
+                        WHERE menu_id = $menuId
+                        AND is_active = 1";
 
         $subMenu = $this->db->query($querySubMenu)->result_array();
         ?>
 
         <?php foreach ($subMenu as $sm) : ?>
 
-            <!-- Nav Item - Dashboard -->
-            <li class="nav-item">
+            <?php if ($title == $sm['title']) : ?>
+
+                <li class="nav-item active">
+
+                <?php else : ?>
+
+                <li class="nav-item">
+
+                <?php endif; ?>
+
                 <a class="nav-link" href="<?= base_url($sm['url']); ?>">
                     <i class="<?= $sm['icon']; ?>"></i>
                     <span><?= $sm['title']; ?></span></a>
-            </li>
+                </li>
 
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+
+            <hr class="sidebar-divider">
+
+        <?php endforeach ?>
 
 
-    <?php endforeach ?>
-
-    <hr class="sidebar-divider">
-
-    <!-- Sidebar Toggler (Sidebar) -->
-    <div class="text-center d-none d-md-inline">
-        <button class="rounded-circle border-0" id="sidebarToggle"></button>
-    </div>
+        <!-- Sidebar Toggler (Sidebar) -->
+        <div class="text-center d-none d-md-inline">
+            <button class="rounded-circle border-0" id="sidebarToggle"></button>
+        </div>
 
 </ul>
 <!-- End of Sidebar -->
